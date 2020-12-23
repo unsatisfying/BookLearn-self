@@ -1102,7 +1102,9 @@ int main()
 
 
 
-# 智能指针
+# 智能指针和动态内存
+
+## 智能指针
 
 * shared_ptr 允许多个指针指向同一个对象
 * unique_ptr 独占所指向的对象，不能被拷贝或者赋值，但是可以作为返回值和函数参数。
@@ -1189,9 +1191,33 @@ shared_ptr<int> p(make_shared<vector<int>>(42));
 
 
 
+## 动态内存
 
+* new和delete
 
+  ```c++
+  int *p=new int[10];//10个未初始化的int
+  int *p=new int[10]();//10个默认初始化的int，括号代表默认初始化，括号内只能为空
+  int *p=new int[10]{};//列表初始化，{}内可以是一个初始化列表，即initalizer_list
+  
+  delete p;//单个元素释放
+  delete[] p;//数组释放
+  ```
 
+* 可以分配大小为0的数组对象，` int *p=new int[0];` 类似尾指针，不能解引用和读取值。
+
+## 智能指针和动态数组
+
+* 可以将智能指针和动态数组一起用，把new返回的指针对象给unique_ptr
+
+  ```c++
+  unique_ptr<int[]> uptr(new int[10]);
+  uptr.release();//释放控制权，uptr转为空，返回指针值，实际并没有释放。
+  ```
+
+## allocator分配器分配内存 <memory>
+
+* allocator类可以帮助我们分离构造和分配内存，当真正要使用到对象的时候才分配需要的内存，但是可以假定分配很大的空间，实际并不真的分配。
 
 # lambda表达式
 
