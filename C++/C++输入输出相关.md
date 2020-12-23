@@ -611,11 +611,7 @@ private:
       static int c = 3;//错误
       static int c;
   };
-```
-  
-  
-
-
+  ```
 
 # I/O库
 
