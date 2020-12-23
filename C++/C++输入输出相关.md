@@ -602,7 +602,8 @@ private:
 
 * 但是如果要在类内声明的同时初始，必须要求静态成员是字面值常量类型的（constexpr、const）
 
-  ```c
+  ```c++
+  int A::c=3;//正确
   class A {
   public:
       static const int a = 2;
@@ -610,8 +611,9 @@ private:
       static int c = 3;//错误
       static int c;
   };
-  	int A::c=3;//正确
 ```
+  
+  
 
 
 
