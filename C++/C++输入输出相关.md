@@ -1219,6 +1219,27 @@ shared_ptr<int> p(make_shared<vector<int>>(42));
 
 * allocator类可以帮助我们分离构造和分配内存，当真正要使用到对象的时候才分配需要的内存，但是可以假定分配很大的空间，实际并不真的分配。
 
+  ```c++
+  
+     	allocator<StrBlob> alloc;
+      int n = 10;
+      auto const p = alloc.allocate(n);//分配10个StrBlob对象。
+      auto q = p;
+      vector<string> v(10, "a");
+      alloc.construct(q++);//用默认构造函数，在q指向的内存构造一个StrBlob对象。
+      alloc.construct(q++, initializer_list<string>{ "123","abc" });//用别的构造函数构造
+    
+  
+      while (q != p)//通过析构函数删除一个对象(没有析构函数会出错)
+          alloc.destroy(q--);
+      alloc.deallocate(p, n);//必须把所有对象都destroy之后才能deallocate
+  
+  ```
+
+  
+
+![image-20201228192255529](C++%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E7%9B%B8%E5%85%B3.assets/image-20201228192255529.png)
+
 # lambda表达式
 
 * lambda表达式形式：` [capture list](parameter list)->return type {function body}` 
