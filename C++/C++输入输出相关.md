@@ -1311,6 +1311,13 @@ shared_ptr<int> p(make_shared<vector<int>>(42));
 - 合成拷贝赋值运算符：
   - 将右侧运算对象的每个非`static`成员赋予左侧运算对象的对应成员。
 
+```c++
+    numbered a;//numbered是一个类 ，这里用默认的构造函数
+    numbered b = a, c = b;  //在定义的时候用的是拷贝构造函数
+    numbered d, h;//用默认构造函数
+    d = h;//用拷贝赋值运算符，此时d,h已经是一个对象
+```
+
 
 
 ## 析构函数
@@ -1333,3 +1340,95 @@ shared_ptr<int> p(make_shared<vector<int>>(42));
 
 - 需要析构函数的类也需要拷贝和赋值操作。
 - 需要拷贝操作的类也需要赋值操作，反之亦然。
+
+## 使用=default
+
+- 可以通过将拷贝控制成员定义为`=default`来显式地要求编译器生成合成的版本。
+- 合成的函数将隐式地声明为内联的。
+
+## 阻止拷贝
+
+- 大多数类应该定义默认构造函数、拷贝构造函数和拷贝赋值运算符，无论是隐式地还是显式地。
+
+- 定义删除的函数：`=delete`。
+
+- 虽然声明了它们，但是不能以任何方式使用它们。
+
+- 析构函数不能是删除的成员。
+
+- 如果一个类有数据成员不能默认构造、拷贝、复制或者销毁，则对应的成员函数将被定义为删除的。
+
+- 老版本使用`private`声明来阻止拷贝。
+
+  ```c++
+  class Employee
+  {
+  private:
+      string name;
+      int ID;
+      static int uniqueid;
+  public:
+      Employee()
+      {
+          ID = uniqueid++;
+      }
+      Employee(const string& _name)
+      {
+          name = _name;
+          ID = uniqueid++;
+      }
+      Employee(const Employee&) = delete;
+      Employee& operator=(const Employee&) = delete;
+  
+      const int getid() const
+      {
+          return ID;
+      }
+  
+  
+  };
+  ```
+
+  
+
+  ## 拷贝资源和管理控制
+
+  - 类的行为可以像一个值，也可以像一个指针。
+
+    - 行为像值：对象有自己的状态，副本和原对象是完全独立的。
+    - 行为像指针：共享状态，拷贝一个这种类的对象时，副本和原对象使用相同的底层数据。
+
+  - ```c++
+    class Hashptr
+    {
+    
+    public:
+        Hashptr(const string& s = string())
+        {
+            ps = new string(s);
+            i = 0;
+        }
+        Hashptr(const Hashptr& hp):ps(new string(*hp.ps)),i(hp.i)
+        {
+    
+        }
+        Hashptr& operator=(const Hashptr& hp)
+        {
+            string* tmp = new string(*hp.ps);
+            delete ps;
+            ps = tmp;
+            i = hp.i;
+            return *this;
+        }
+        ~Hashptr()
+        {
+            delete ps;
+        }
+    private:
+        string* ps;
+        int i;
+    
+    };
+    ```
+
+    
