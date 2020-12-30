@@ -1389,46 +1389,108 @@ shared_ptr<int> p(make_shared<vector<int>>(42));
   };
   ```
 
+
+
+
+## 拷贝资源和管理控制
+
+- 类的行为可以像一个值，也可以像一个指针。
+
+  - 行为像值：对象有自己的状态，副本和原对象是完全独立的。如下代码：
+  - 行为像指针：共享状态，拷贝一个这种类的对象时，副本和原对象使用相同的底层数据。
+
+- ```c++
+  class Hashptr
+  {
+  
+  public:
+      Hashptr(const string& s = string())
+      {
+          ps = new string(s);
+          i = 0;
+      }
+      Hashptr(const Hashptr& hp):ps(new string(*hp.ps)),i(hp.i)
+      {
+  
+      }
+      Hashptr& operator=(const Hashptr& hp)
+      {
+          string* tmp = new string(*hp.ps);
+          delete ps;
+          ps = tmp;
+          i = hp.i;
+          return *this;
+      }
+      ~Hashptr()
+      {
+          delete ps;
+      }
+  private:
+      string* ps;
+      int i;
+  
+  };
+  ```
+
   
 
-  ## 拷贝资源和管理控制
+## 交换操作
 
-  - 类的行为可以像一个值，也可以像一个指针。
+```c++
 
-    - 行为像值：对象有自己的状态，副本和原对象是完全独立的。
-    - 行为像指针：共享状态，拷贝一个这种类的对象时，副本和原对象使用相同的底层数据。
+class HasPtr {
+public:
+	friend void swap(HasPtr&, HasPtr&);
+	HasPtr(const std::string& s = std::string()) : ps(new std::string(s)), i(0) { }
+	HasPtr(const HasPtr& hp) : ps(new std::string(*hp.ps)), i(hp.i) { }
+	//HasPtr& operator=(const HasPtr& hp) {
+	//	auto new_p = new std::string(*hp.ps);
+	//	delete ps;
+	//	ps = new_p;
+	//	i = hp.i;
+	//	return *this;
+	//}
+	HasPtr& operator=(HasPtr tmp)
+	{
+		swap(*this, tmp);
+		return *this;
+	}
+	friend bool operator<(const HasPtr& lhs, const HasPtr& rhs);
+	~HasPtr() {
+		delete ps;
+	}
 
-  - ```c++
-    class Hashptr
-    {
-    
-    public:
-        Hashptr(const string& s = string())
-        {
-            ps = new string(s);
-            i = 0;
-        }
-        Hashptr(const Hashptr& hp):ps(new string(*hp.ps)),i(hp.i)
-        {
-    
-        }
-        Hashptr& operator=(const Hashptr& hp)
-        {
-            string* tmp = new string(*hp.ps);
-            delete ps;
-            ps = tmp;
-            i = hp.i;
-            return *this;
-        }
-        ~Hashptr()
-        {
-            delete ps;
-        }
-    private:
-        string* ps;
-        int i;
-    
-    };
-    ```
+	void show() { std::cout << *ps << std::endl; }
+private:
+	std::string* ps;
+	int i;
+};
 
-    
+inline void swap(HasPtr& lhs, HasPtr& rhs)
+{
+	using std::swap;
+	swap(lhs.ps, rhs.ps);
+	swap(lhs.i, rhs.i);
+	std::cout << "call swap(HasPtr& lhs, HasPtr& rhs)" << std::endl;
+}
+bool operator<(const HasPtr& lhs, const HasPtr& rhs)
+{
+	return *(lhs.ps) < *(rhs.ps);
+}
+int main()
+{
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	vector<HasPtr> v;
+	for (int i = 0; i < 5; i++)
+	{
+		string tmp(10,'h'-i);
+		v.emplace_back(HasPtr(tmp));
+	}
+
+	sort(v.begin(), v.end());
+
+    return 0;
+}
+
+```
+
