@@ -1494,3 +1494,118 @@ int main()
 
 ```
 
+## 一个不带模板的vector<string>类
+
+```c++
+
+class StrVec
+{
+public:
+	StrVec() :elements(nullptr), first_free(nullptr), cap(nullptr) {}
+
+	StrVec(const StrVec& s)
+	{
+		auto newdata = alloc_n_copy(s.begin(), s.end());
+		elements = newdata.first;
+		first_free = newdata.second;
+		cap = newdata.second;
+	}
+	StrVec& operator=(const StrVec& rhs)
+	{
+		auto data = alloc_n_copy(rhs.begin(), rhs.end());
+		free();
+		elements = data.first;
+		first_free = data.second;
+		cap = data.second;
+		return *this;
+	}
+	~StrVec()
+	{
+		free();
+	}
+
+	void push_back(string& s)
+	{
+		check_n_alloc();
+		alloc.construct(first_free++, s);
+	}
+	size_t size() const 
+	{ 
+		return first_free - elements; 
+	}
+
+	size_t capacity() const
+	{
+		return cap - elements;
+	}
+
+	string* begin() const
+	{
+		return elements;
+	}
+	string* end() const
+	{
+		return first_free;
+	}
+private:
+	static allocator<string> alloc;
+
+	void check_n_alloc()
+	{
+		if (size() == capacity()) reallocate();
+	}
+	void free()
+	{
+		if (elements)
+		{
+			for (auto p = first_free; p != elements;)
+			{
+				alloc.destroy(--p);
+			}
+			alloc.deallocate(elements, cap - elements);
+		}
+	}
+	void reallocate()
+	{
+		auto newcapacity = size() ? 2 * size() : 1;
+		auto newdata = alloc.allocate(newcapacity);
+		auto dst = newdata;
+		auto src = elements;
+		for (size_t i = 0; i != size(); i++)
+		{
+			alloc.construct(dst++, move(*src++));
+		}
+		free();
+		elements = newdata;
+		first_free = dst;
+		cap = elements + newcapacity;
+	}
+	pair<string*, string*> alloc_n_copy(const string* b, const string* e)
+	{
+		auto data = alloc.allocate(e - b);
+		return { data,uninitialized_copy(b,e,data) };
+	}
+	string* elements;
+	string* first_free;
+	string* cap;
+};
+
+
+```
+
+## 对象移动
+
+- 很多拷贝操作后，原对象会被销毁，因此引入移动操作可以大幅度提升性能。
+- 在新标准中，我们可以用容器保存不可拷贝的类型，只要它们可以被移动即可。
+- 标准库容器、`string`和`shared_ptr`类既可以支持移动也支持拷贝。`IO`类和`unique_ptr`类可以移动但不能拷贝。
+
+### 右值引用
+
+- 新标准引入右值引用以支持移动操作。
+- 通过`&&`获得右值引用。
+- 只能绑定到一个将要销毁的对象。
+- 常规引用可以称之为左值引用。
+- 左值持久，右值短暂。
+
+
+
