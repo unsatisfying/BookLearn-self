@@ -22,3 +22,53 @@
         }
         return ans;
     }
+
+
+
+
+
+
+
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<string>
+
+using namespace std;
+    int Manacher(string s)
+    {
+        int idd=0,R=0;//idd是目前最右边的的len的下标，R是最大len的下标的最右边的位置，即idd+len[idd]=max
+        vector<int> len(s.size());
+        int ans=0;
+
+        for(int i=0;i<s.size();i++)
+        {
+            if(i<R)
+                len[i]=min(len[2*idd-i],R-i);
+            else
+                len[i]=1;
+            for(;i+len[i]<s.size()&&i-len[i]>0&&s[i+len[i]]==s[i-len[i]];len[i]++);
+
+            if(len[i]+i>R)
+            {
+                R=len[i]+i;
+                idd=i;
+            }
+            ans=max(ans,len[i]);
+        }
+        return ans;
+    }
+int main()
+{
+    string s;
+    getline(cin,s);
+    string stmp="$#";
+    for(auto &a:s)
+    {
+        stmp = stmp + a;
+        stmp = stmp + "#";
+    }
+    cout<<Manacher(stmp)-1<<endl;
+    
+    
+}
